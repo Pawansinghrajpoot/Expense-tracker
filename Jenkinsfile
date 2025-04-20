@@ -1,14 +1,9 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10' // Python environment for pip and tests
-            args '-u root'
-        }
-    }
+    agent any  // Use any available Jenkins agent
 
     environment {
-        GITHUB_CREDS = credentials('github-creds')
-        DOCKERHUB_CREDS = credentials('dockerhub-creds')
+        GITHUB_CREDS = credentials('github-creds')  // GitHub credentials
+        DOCKERHUB_CREDS = credentials('dockerhub-creds')  // DockerHub credentials
     }
 
     stages {
@@ -31,17 +26,28 @@ pipeline {
         }
 
         stage('Build and Push Docker Image') {
-            agent any  // Run this on the Jenkins node where Docker is installed
+            agent none  // Skip using a container for Docker steps
             steps {
-                checkout scm // re-checkout the repo because "agent any" starts a new node
+                // Re-checkout the repo in the Docker build stage
+                checkout scm
+
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
+                        # Ensure Docker is running and log in to DockerHub
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                        # Build Docker image and push it to DockerHub
                         docker build -t $DOCKER_USER/expense-tracker .
                         docker push $DOCKER_USER/expense-tracker
                     '''
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            echo "Build failed. No further actions will be taken."
         }
     }
 }
