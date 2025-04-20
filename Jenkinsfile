@@ -6,7 +6,8 @@ pipeline {
     }
 
     environment {
-        GITHUB_CREDS = credentials('github-creds') // GitHub credentials
+        GITHUB_CREDS = credentials('github-creds')         // GitHub credentials
+        DOCKERHUB_CREDS = credentials('dockerhub-creds')   // DockerHub credentials
     }
 
     stages {
