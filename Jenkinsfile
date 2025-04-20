@@ -1,9 +1,14 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.10' // Python environment with pip
+            args '-u root' // run as root to avoid permission issues
+        }
+    }
 
     environment {
-        GITHUB_CREDS = credentials('github-creds') // GitHub credentials
-        DOCKERHUB_CREDS = credentials('dockerhub-creds') // DockerHub creds ID
+        GITHUB_CREDS = credentials('github-creds')
+        DOCKERHUB_CREDS = credentials('dockerhub-creds')
     }
 
     stages {
@@ -26,6 +31,7 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            agent any // Run this outside the python container to access docker
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh """
