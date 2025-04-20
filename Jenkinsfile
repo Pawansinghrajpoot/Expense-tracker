@@ -1,13 +1,9 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.10'
-        }
-    }
+    agent any
 
     environment {
-        GITHUB_CREDS = credentials('github-creds')         // GitHub credentials
-        DOCKERHUB_CREDS = credentials('dockerhub-creds')   // DockerHub credentials
+        GITHUB_CREDS = credentials('github-creds') // GitHub credentials
+        DOCKERHUB_CREDS = credentials('dockerhub-creds') // DockerHub creds ID
     }
 
     stages {
@@ -31,11 +27,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh """
-                    echo "$DOCKERHUB_CREDS_PSW" | docker login -u "$DOCKERHUB_CREDS_USR" --password-stdin
-                    docker build -t $DOCKERHUB_CREDS_USR/expense-tracker .
-                    docker push $DOCKERHUB_CREDS_USR/expense-tracker
-                """
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker build -t $DOCKER_USER/expense-tracker .
+                        docker push $DOCKER_USER/expense-tracker
+                    """
+                }
             }
         }
     }
