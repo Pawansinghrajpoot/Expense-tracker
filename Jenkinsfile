@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git 'https://github.com/Pawansinghrajpoot/Expense-tracker.git'
+                git branch: 'main', url: 'https://github.com/Pawansinghrajpoot/Expense-tracker.git'
             }
         }
 
@@ -26,9 +26,11 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin"
-                sh "docker build -t $DOCKERHUB_CREDS_USR/expense-tracker ."
-                sh "docker push $DOCKERHUB_CREDS_USR/expense-tracker"
+                sh """
+                    echo "$DOCKERHUB_CREDS_PSW" | docker login -u "$DOCKERHUB_CREDS_USR" --password-stdin
+                    docker build -t $DOCKERHUB_CREDS_USR/expense-tracker .
+                    docker push $DOCKERHUB_CREDS_USR/expense-tracker
+                """
             }
         }
     }
