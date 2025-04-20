@@ -30,8 +30,7 @@ pipeline {
         }
 
         stage('Build and Push Docker Image') {
-            // This stage must NOT run inside the Python Docker container (Docker-in-Docker issues)
-            agent { label 'docker-enabled' }  // Optional: Use a node label where Docker is installed
+            agent any  // Updated: Use any available node with Docker
 
             steps {
                 checkout scm
