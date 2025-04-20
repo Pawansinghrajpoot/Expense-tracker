@@ -6,13 +6,13 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDS = credentials('dockerhub-creds')
+        GITHUB_CREDS = credentials('github-creds') // GitHub credentials
     }
 
     stages {
         stage('Clone Repo') {
             steps {
-                git branch: 'main', url: 'https://github.com/Pawansinghrajpoot/Expense-tracker.git'
+                git credentialsId: 'github-creds', branch: 'main', url: 'https://github.com/Pawansinghrajpoot/Expense-tracker.git'
             }
         }
 
