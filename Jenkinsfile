@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.9'  // Use any official Python image
-        }
-    }
+    agent any  // Run globally on any Jenkins node (not in docker)
 
     environment {
         GITHUB_CREDS = credentials('github-creds')
@@ -17,24 +13,22 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'pip install -r requirements.txt'
+        stage('Install Dependencies & Run Tests') {
+            agent {
+                docker {
+                    image 'python:3.9'
+                }
             }
-        }
-
-        stage('Run Tests') {
             steps {
-                sh 'python manage.py test'
+                sh '''
+                    pip install -r requirements.txt
+                    python manage.py test
+                '''
             }
         }
 
         stage('Build and Push Docker Image') {
-            agent any  // Updated: Use any available node with Docker
-
             steps {
-                checkout scm
-
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
